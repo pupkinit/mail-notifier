@@ -1,24 +1,20 @@
 #!/usr/bin/env python3
 
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (QAction, QApplication, QCheckBox, QComboBox,
-        QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-        QMessageBox, QMenu, QPushButton, QSpinBox, QStyle, QSystemTrayIcon,
-        QTextEdit, QVBoxLayout, QInputDialog)
-from PyQt5.QtCore import (QThread, QTimer, QFile, QSettings)
+from PyQt5.QtWidgets import (QAction, QApplication, QDialog, QLineEdit,
+                             QMessageBox, QMenu, QSystemTrayIcon, QInputDialog)
+from PyQt5.QtCore import (QTimer, QSettings)
 import imaplib
 import email
 imaplib._MAXLINE = 400000
 import subprocess
-from views import resources_rc
 from views.ui_settings import Ui_Settings
 from views.ui_about import Ui_about
 from views.ui_details import Ui_Details
 from PyQt5 import QtCore, QtGui, QtWidgets
 import os
 import socket
-import time
-from datetime import datetime, date, time
+from datetime import datetime, time
 
 #variables
 programTitle = "Mail Notifier"
