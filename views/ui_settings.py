@@ -171,4 +171,4 @@ class Ui_Settings(object):
         self.btnRemoveAccount.setToolTip(_translate("Settings", "Remove account"))
         self.btnSaveAccount.setToolTip(_translate("Settings", "Save account"))
 
-import resources_rc
+from views import resources_rc

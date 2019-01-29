@@ -10,10 +10,10 @@ import imaplib
 import email
 imaplib._MAXLINE = 400000
 import subprocess
-import resources_rc
-from ui_settings import Ui_Settings
-from ui_about import Ui_about
-from ui_details import Ui_Details
+from views import resources_rc
+from views.ui_settings import Ui_Settings
+from views.ui_about import Ui_about
+from views.ui_details import Ui_Details
 from PyQt5 import QtCore, QtGui, QtWidgets
 import os
 import socket
@@ -23,7 +23,7 @@ from datetime import datetime, date, time
 #variables
 programTitle = "Mail Notifier"
 programVersion = "3.01-dev"
-settings = QSettings(os.path.expanduser("~")+"/.config/mail-notifier/settings.conf", QSettings.NativeFormat)
+settings = QSettings("settings.conf", QSettings.IniFormat)
 def GlobalSettingsExist():
     if ((settings.contains("CheckInterval") and settings.value("CheckInterval") != "") and
         (settings.contains("Notify") and settings.value("Notify") != "")):

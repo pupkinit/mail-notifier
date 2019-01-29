@@ -49,4 +49,4 @@ class Ui_about(object):
         about.setWindowTitle(_translate("about", "Mail Notifier"))
         self.lblNameVersion.setText(_translate("about", "Mail Notifier"))
 
-import resources_rc
+from views import resources_rc

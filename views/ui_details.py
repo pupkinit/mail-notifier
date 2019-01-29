@@ -58,4 +58,4 @@ class Ui_Details(object):
         Details.setWindowTitle(_translate("Details", "Mail Notifier"))
         self.btnRefresh.setText(_translate("Details", "Refresh"))
 
-import resources_rc
+from views import resources_rc
