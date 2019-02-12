@@ -62,11 +62,6 @@ class Window(QDialog):
         self.createTrayIcon()
         # Draw system tray icon
         pixmap = QtGui.QPixmap(QtGui.QPixmap(":icons/mailbox_empty.png"))
-        painter = QtGui.QPainter(pixmap)
-        painter.setPen(QtGui.QColor(255, 0, 0))
-        painter.setFont(QtGui.QFont('Arial', QtGui.QFont.Bold))
-        painter.drawText(QtCore.QRectF(pixmap.rect()), QtCore.Qt.AlignCenter, "0")
-        painter.end()
         self.trayIcon.setIcon(QtGui.QIcon(pixmap))
         # End drawing system tray icon
 
@@ -107,9 +102,13 @@ class Window(QDialog):
                                  triggered=self.aboutShow)
         self.checkNow = QAction(QIcon(':icons/check_now.png'), "&Check now", self, triggered=mail_check)
         self.restoreAction = QAction(QIcon(":icons/settings.png"), "&Settings...", self, triggered=self.showNormal)
-        self.quitAction = QAction(QIcon(':icons/menu_quit.png'), "&Quit", self, triggered=QApplication.instance().quit)
+        self.quitAction = QAction(QIcon(':icons/menu_quit.png'), "&Quit", self, triggered=self.quit)
 
         # UI functions
+
+    def quit(self):
+        self.trayIcon.hide()
+        QApplication.instance().quit()
 
     def createTrayIcon(self):
         self.trayIconMenu = QMenu(self)
@@ -378,15 +377,18 @@ def mail_check():
             ssl = settings.value("SSL")
             settings.endGroup()
             if m.login(mailserver, port, user, password, ssl):
-                if (mail_count == "ERROR" or m.checkMail() == "ERROR"):
+                res = m.checkMail()
+                if res == "ERROR":
                     mail_count = "ERROR"
+                    break
                 else:
-                    mail_count += m.checkMail()
+                    mail_count += res
                     AllFroms.extend(m.parseMail("From"))
                     AllSubjs.extend(m.parseMail("Subject"))
                     AllDates.extend(m.parseMail("Date"))
             else:
                 mail_count = "CONNECTION_ERROR"
+                break
     else:
         mail_count = "CONFIGURATION_ERROR"
 
@@ -397,11 +399,6 @@ def mail_check():
         window.trayIcon.setToolTip("You have no unread mail")
         # Draw text on icon
         pixmap = QtGui.QPixmap(QtGui.QPixmap(":icons/mailbox_empty.png"))
-        painter = QtGui.QPainter(pixmap)
-        painter.setPen(QtGui.QColor(255, 0, 0))
-        painter.setFont(QtGui.QFont('Arial', 100, QtGui.QFont.Bold))
-        painter.drawText(QtCore.QRectF(pixmap.rect()), QtCore.Qt.AlignCenter, "0")
-        painter.end()
         # End drawing text on icon
         window.trayIcon.setIcon(QtGui.QIcon(pixmap))
         details.ui.statusBar.setText(datetime.strftime(datetime.now(),
