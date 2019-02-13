@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/about.ui'
+# Form implementation generated from reading ui file 'resources\about.ui'
 #
-# Created by: PyQt5 UI code generator 5.8.2
+# Created by: PyQt5 UI code generator 5.12
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_about(object):
     def setupUi(self, about):
@@ -48,5 +49,6 @@ class Ui_about(object):
         _translate = QtCore.QCoreApplication.translate
         about.setWindowTitle(_translate("about", "Mail Notifier"))
         self.lblNameVersion.setText(_translate("about", "Mail Notifier"))
+
 
 from views import resources_rc

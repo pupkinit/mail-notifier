@@ -11,6 +11,7 @@ import subprocess
 from views.ui_settings import Ui_Settings
 from views.ui_about import Ui_about
 from views.ui_details import Ui_Details
+from views.ui_console import Ui_Console
 from PyQt5 import QtCore, QtGui, QtWidgets
 import os
 import socket
@@ -102,6 +103,7 @@ class Window(QDialog):
                                  triggered=self.aboutShow)
         self.checkNow = QAction(QIcon(':icons/check_now.png'), "&Check now", self, triggered=mail_check)
         self.restoreAction = QAction(QIcon(":icons/settings.png"), "&Settings...", self, triggered=self.showNormal)
+        self.consoleAction = QAction(QIcon(":icons/logs.png"), "Conso&le...", self, triggered=self.consoleShow)
         self.quitAction = QAction(QIcon(':icons/menu_quit.png'), "&Quit", self, triggered=self.quit)
 
         # UI functions
@@ -119,6 +121,7 @@ class Window(QDialog):
         self.trayIconMenu.addSeparator()
         self.trayIconMenu.addAction(self.checkNow)
         self.trayIconMenu.addAction(self.restoreAction)
+        self.trayIconMenu.addAction(self.consoleAction)
         self.trayIconMenu.addAction(self.aboutShow)
         self.trayIconMenu.addAction(self.quitAction)
         self.trayIcon = QSystemTrayIcon(self)
@@ -244,6 +247,10 @@ class Window(QDialog):
         details.show()
         details.activateWindow()
 
+    def consoleShow(self):
+        console.show()
+        console.activateWindow()
+
     def trayIconActivated(self, reason):
         if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick):
             details.show()
@@ -281,6 +288,28 @@ class About(QDialog):
     def closeEvent(self, event):
         event.ignore()
         self.hide()
+
+
+class Console(QDialog):
+    def __init__(self):
+        super(Console, self).__init__()
+
+        self.ui = Ui_Console()
+        self.ui.setupUi(self)
+        self.setWindowFlags(QtCore.Qt.Tool)
+        if (settings.contains("Console_width") and settings.contains("Console_height")):
+            width = int(settings.value("Console_width"))
+            height = int(settings.value("Console_height"))
+            self.resize(width, height)
+
+    def closeEvent(self, event):
+        event.ignore()
+        settings.setValue("Console_width", self.width())
+        settings.setValue("Console_height", self.height())
+        self.hide()
+
+    def log(self, txt):
+        self.ui.logList.addItem(datetime.strftime(datetime.now(), "%d.%m.%Y %H:%M:%S") + " - " + txt)
 
 
 class Details(QDialog):
@@ -322,7 +351,7 @@ class Mail():
             self.imap.login(user, password)
             return True
         except:
-            print("Login error")
+            console.log("Login error")
             return False
 
     def checkMail(self):
@@ -331,7 +360,7 @@ class Mail():
             self.unRead = self.imap.search(None, 'UNSEEN')
             return len(self.unRead[1][0].split())
         except:
-            print("Unable to check mail")
+            console.log("Unable to check mail")
             return "ERROR"
 
     def parseMail(self, header):
@@ -351,12 +380,13 @@ class Mail():
                 output.append(msg)
             return output
         except:
-            print("Unable to get mail data")
+            console.log("Unable to get mail data")
             return "ERROR"
 
 
 def mail_check():
-    details.ui.statusBar.setText(datetime.strftime(datetime.now(), "%d.%m.%Y %H:%M:%S") + " - Starting mail check")
+
+    console.log("Starting mail check")
     mail_count = 0
     AllFroms = []
     AllSubjs = []
@@ -401,25 +431,22 @@ def mail_check():
         pixmap = QtGui.QPixmap(QtGui.QPixmap(":icons/mailbox_empty.png"))
         # End drawing text on icon
         window.trayIcon.setIcon(QtGui.QIcon(pixmap))
-        details.ui.statusBar.setText(datetime.strftime(datetime.now(),
-                                                       "%d.%m.%Y %H:%M:%S") + " - Mail check completed. You have no unread letters")
+        console.log("Mail check completed. You have no unread letters")
     elif mail_count == "ERROR":
         window.trayIcon.setIcon(QIcon(":icons/mailbox_error.png"))
         window.trayIcon.setToolTip("Error checking mail.")
-        details.ui.statusBar.setText(datetime.strftime(datetime.now(), "%d.%m.%Y %H:%M:%S") + " - Error checking mail")
+        console.log("Error checking mail")
     elif mail_count == "CONNECTION_ERROR":
         window.trayIcon.setToolTip(
             "Unable to establish connection to mailbox. Check your mail settings and make sure that you have not network problems.")
         notify(
             "Unable to establish connection to mailbox. Check your mail settings and make sure that you have not network problems.")
         window.trayIcon.setIcon(QIcon(":icons/mailbox_error.png"))
-        details.ui.statusBar.setText(datetime.strftime(datetime.now(),
-                                                       "%d.%m.%Y %H:%M:%S") + " - Unable to establish connection to mailbox. Check your mail settings and make sure that you have not network problems")
+        console.log("Unable to establish connection to mailbox. Check your mail settings and make sure that you have not network problems")
     elif mail_count == "CONFIGURATION_ERROR":
         window.trayIcon.setIcon(QIcon(":icons/mailbox_error.png"))
         window.trayIcon.setToolTip("Cannot find configuration file. You should give access to your mailbox")
-        details.ui.statusBar.setText(datetime.strftime(datetime.now(),
-                                                       "%d.%m.%Y %H:%M:%S") + " - Cannot find configuration file. You should give access to your mailbox")
+        console.log("Cannot find configuration file. You should give access to your mailbox")
     else:
         # When mailbox has unread letters
         window.trayIcon.setToolTip("You have " + str(mail_count) + " unread letters")
@@ -446,13 +473,13 @@ def mail_check():
         try:
             horHeaders = []
             for n, key in enumerate(sorted(data.keys())):
-                # print(data.keys())
+                # console.log(data.keys())
                 horHeaders.append(key)
                 for m, item in enumerate(data[key]):
                     newitem = QtWidgets.QTableWidgetItem(item)
                     details.ui.tableWidget.setItem(m, n, newitem)
         except:
-            print("Unable to load some data")
+            console.log("Unable to load some data")
             pass
 
         # Add Header
@@ -461,9 +488,7 @@ def mail_check():
         # Adjust size of Table
         details.ui.tableWidget.resizeColumnsToContents()
         details.ui.tableWidget.resizeRowsToContents()
-        details.ui.statusBar.setText(
-            datetime.strftime(datetime.now(), "%d.%m.%Y %H:%M:%S") + " - Mail check completed. You have " + str(
-                mail_count) + " unread letters")
+        console.log("Mail check completed. You have " + str(mail_count) + " unread letters")
     # check was successfull, lastCheckCount is updating
     window.lastCheckCount = mail_count
 
@@ -474,7 +499,7 @@ def notify(message):
             subprocess.Popen(['notify-send', programTitle, message])
         return
     except:
-        print(message)
+        console.log(message)
 
 
 if __name__ == '__main__':
@@ -494,6 +519,7 @@ if __name__ == '__main__':
     window = Window()
     about = About()
     details = Details()
+    console = Console()
     if (GlobalSettingsExist() and AccountExist()):
         window.hide()
     else:

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/settings.ui'
+# Form implementation generated from reading ui file 'resources\settings.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.12
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_Settings(object):
     def setupUi(self, Settings):
@@ -18,7 +19,7 @@ class Ui_Settings(object):
         sizePolicy.setHeightForWidth(Settings.sizePolicy().hasHeightForWidth())
         Settings.setSizePolicy(sizePolicy)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("../icons/mailbox_empty.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(":/icons/mailbox_empty.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Settings.setWindowIcon(icon)
         self.buttonBox = QtWidgets.QDialogButtonBox(Settings)
         self.buttonBox.setGeometry(QtCore.QRect(20, 290, 341, 32))
@@ -170,5 +171,6 @@ class Ui_Settings(object):
         self.btnRenameAccount.setToolTip(_translate("Settings", "Rename account"))
         self.btnRemoveAccount.setToolTip(_translate("Settings", "Remove account"))
         self.btnSaveAccount.setToolTip(_translate("Settings", "Save account"))
+
 
 from views import resources_rc

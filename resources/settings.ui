@@ -20,8 +20,8 @@
    <string>Mail Notifier - Settings</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>../icons/mailbox_empty.png</normaloff>../icons/mailbox_empty.png</iconset>
+   <iconset resource="resources.qrc">
+    <normaloff>:/icons/mailbox_empty.png</normaloff>:/icons/mailbox_empty.png</iconset>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
@@ -405,7 +405,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../resources.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections>
   <connection>

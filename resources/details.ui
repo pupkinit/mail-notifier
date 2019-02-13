@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1048</width>
-    <height>619</height>
+    <width>294</width>
+    <height>148</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Mail Notifier</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources.qrc">
+   <iconset resource="resources.qrc">
     <normaloff>:/icons/mailbox_empty.png</normaloff>:/icons/mailbox_empty.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -30,7 +30,7 @@
       <string>Refresh</string>
      </property>
      <property name="icon">
-      <iconset resource="../resources.qrc">
+      <iconset resource="resources.qrc">
        <normaloff>:/icons/check_now.png</normaloff>:/icons/check_now.png</iconset>
      </property>
     </widget>
@@ -42,41 +42,10 @@
      </item>
     </layout>
    </item>
-   <item>
-    <widget class="QLabel" name="statusBar">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="baseSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
   </layout>
  </widget>
  <resources>
-  <include location="../resources.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/details.ui'
+# Form implementation generated from reading ui file 'resources\details.ui'
 #
-# Created by: PyQt5 UI code generator 5.6.1.dev1604271126
+# Created by: PyQt5 UI code generator 5.12
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_Details(object):
     def setupUi(self, Details):
         Details.setObjectName("Details")
-        Details.resize(1048, 619)
+        Details.resize(294, 148)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/icons/mailbox_empty.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Details.setWindowIcon(icon)
@@ -36,19 +37,6 @@ class Ui_Details(object):
         self.tableWidget.setRowCount(0)
         self.horizontalLayout.addWidget(self.tableWidget)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
-        self.statusBar = QtWidgets.QLabel(Details)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.statusBar.sizePolicy().hasHeightForWidth())
-        self.statusBar.setSizePolicy(sizePolicy)
-        self.statusBar.setMinimumSize(QtCore.QSize(0, 0))
-        self.statusBar.setBaseSize(QtCore.QSize(0, 0))
-        self.statusBar.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.statusBar.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.statusBar.setText("")
-        self.statusBar.setObjectName("statusBar")
-        self.verticalLayout_2.addWidget(self.statusBar)
 
         self.retranslateUi(Details)
         QtCore.QMetaObject.connectSlotsByName(Details)
@@ -57,5 +45,6 @@ class Ui_Details(object):
         _translate = QtCore.QCoreApplication.translate
         Details.setWindowTitle(_translate("Details", "Mail Notifier"))
         self.btnRefresh.setText(_translate("Details", "Refresh"))
+
 
 from views import resources_rc
