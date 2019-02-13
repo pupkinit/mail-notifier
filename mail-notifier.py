@@ -13,7 +13,6 @@ from views.ui_about import Ui_about
 from views.ui_details import Ui_Details
 from views.ui_console import Ui_Console
 from PyQt5 import QtCore, QtGui, QtWidgets
-import os
 import socket
 from datetime import datetime, time
 
@@ -181,11 +180,7 @@ class Window(QDialog):
 
     def btnTestConnection_clicked(self):
         try:
-            if self.ui.boolifSSL.isChecked:
-                self.imap = imaplib.IMAP4_SSL(self.ui.txtboxMailServer.text(), self.ui.txtboxPort.text())
-            else:
-                self.imap = imaplib.IMAP4(self.ui.txtboxMailServer.text(), self.ui.txtboxPort.text())
-            self.imap.login(self.ui.txtboxLogin.text(), self.ui.txtboxPassword.text())
+            Mail(self.ui.txtboxMailServer.text(), self.ui.txtboxPort.text(), self.ui.boolifSSL.isChecked, self.ui.txtboxLogin.text(), self.ui.txtboxPassword.text())
             output = "Connection was established successfully"
         except:
             output = "Unable to establish connection to mailbox"
@@ -336,65 +331,40 @@ class Details(QDialog):
 
 # Common functions
 
-class Mail():
-    def __init__(self):
+class Mail:
+    def __init__(self, mailserver, port, ssl, user, password):
         socket.setdefaulttimeout(5)
+        if ssl:
+            self.imap = imaplib.IMAP4_SSL(mailserver, port)
+        else:
+            self.imap = imaplib.IMAP4(mailserver, port)
+        # login to mailserver
+        self.imap.login(user, password)
 
-    def login(self, mailserver, port, user, password, ssl):
-        try:
-            if ssl:
-                self.imap = imaplib.IMAP4_SSL(mailserver, port)
-
-            else:
-                self.imap = imaplib.IMAP4(mailserver, port)
-            self.imap.login(user, password)
-            return True
-        except:
-            console.log("Login error")
-            return False
-
-    def checkMail(self):
-        try:
-            self.imap.select()
-            self.unRead = self.imap.search(None, 'UNSEEN')
-            return len(self.unRead[1][0].split())
-        except:
-            console.log("Unable to check mail")
-            return "ERROR"
-
-    def parseMail(self, header):
-        try:
-            output = []
-            self.imap.select(readonly=True)
-            typ, data = self.imap.search(None, 'UNSEEN')
-            for num in data[0].split():
-                typ, data = self.imap.fetch(num, '(RFC822)')
-                raw_mail = data[0][1]
-                mail = email.message_from_bytes(raw_mail)
-                h = email.header.decode_header(mail.get(header))
-                if h[0][1] != "unknown-8bit":
-                    msg = h[0][0].decode(h[0][1]) if h[0][1] else h[0][0]
-                else:
-                    msg = "Unknown charset"
-                output.append(msg)
-            return output
-        except:
-            console.log("Unable to get mail data")
-            return "ERROR"
+    def checkmail(self, account_name):
+        # search unseen mails
+        mails = []
+        self.imap.select(readonly=True)
+        typ, data = self.imap.search(None, 'UNSEEN')
+        for num in data[0].split():
+            typ, data = self.imap.fetch(num, '(RFC822)')
+            raw_mail = data[0][1]
+            mail = email.message_from_bytes(raw_mail)
+            mail = {
+                'Account': account_name,
+                'From': email.header.decode_header(mail.get('From')),
+                'Subject': email.header.decode_header(mail.get('Subject')),
+                'Date': email.header.decode_header(mail.get('Date'))
+            }
+            mails.append(mail)
+        return mails
 
 
 def mail_check():
-
     console.log("Starting mail check")
-    mail_count = 0
-    AllFroms = []
-    AllSubjs = []
-    AllDates = []
-    details.ui.tableWidget.clearContents()
-    details.ui.tableWidget.setRowCount(0)
-    details.ui.tableWidget.setColumnCount(0)
+    mails = []
+    has_errors = False
     if GlobalSettingsExist() and AccountExist():
-        m = Mail()
         groups = settings.childGroups()
         for i in range(len(groups)):
             settings.beginGroup(groups[i])
@@ -405,91 +375,80 @@ def mail_check():
             port = settings.value("Port")
             ssl = settings.value("SSL")
             settings.endGroup()
-            if m.login(mailserver, port, user, password, ssl):
-                res = m.checkMail()
-                if res == "ERROR":
-                    mail_count = "ERROR"
-                    break
-                else:
-                    mail_count += res
-                    AllFroms.extend(m.parseMail("From"))
-                    AllSubjs.extend(m.parseMail("Subject"))
-                    AllDates.extend(m.parseMail("Date"))
-            else:
-                mail_count = "CONNECTION_ERROR"
-                break
+            try:
+                m = Mail(mailserver, port, ssl, user, password)
+                mails.extend(m.checkmail(group))
+            except imaplib.IMAP4.error as ex:
+                has_errors = True
+                console.log(group + ': ' + ex.args[0].decode())
+            except (Exception, socket.timeout) as ex:
+                has_errors = True
+                msg = 'timeout' if type(ex) == socket.timeout else ex.strerror
+                console.log('%s: unable to establish connection to mailbox (%s)' % (group, msg))
     else:
-        mail_count = "CONFIGURATION_ERROR"
+        has_errors = True
+        console.log("Cannot find configuration file. You should give access to your mailbox")
 
     # Parsing mail_count values
 
-    if mail_count == 0:
+    if len(mails) == 0:
         # When mailbox have not unread letters
         window.trayIcon.setToolTip("You have no unread mail")
         # Draw text on icon
-        pixmap = QtGui.QPixmap(QtGui.QPixmap(":icons/mailbox_empty.png"))
+        pixmap = QtGui.QPixmap(QtGui.QPixmap(":icons/mailbox_error.png" if has_errors else ":icons/mailbox_empty.png"))
         # End drawing text on icon
         window.trayIcon.setIcon(QtGui.QIcon(pixmap))
         console.log("Mail check completed. You have no unread letters")
-    elif mail_count == "ERROR":
-        window.trayIcon.setIcon(QIcon(":icons/mailbox_error.png"))
-        window.trayIcon.setToolTip("Error checking mail.")
-        console.log("Error checking mail")
-    elif mail_count == "CONNECTION_ERROR":
-        window.trayIcon.setToolTip(
-            "Unable to establish connection to mailbox. Check your mail settings and make sure that you have not network problems.")
-        notify(
-            "Unable to establish connection to mailbox. Check your mail settings and make sure that you have not network problems.")
-        window.trayIcon.setIcon(QIcon(":icons/mailbox_error.png"))
-        console.log("Unable to establish connection to mailbox. Check your mail settings and make sure that you have not network problems")
-    elif mail_count == "CONFIGURATION_ERROR":
-        window.trayIcon.setIcon(QIcon(":icons/mailbox_error.png"))
-        window.trayIcon.setToolTip("Cannot find configuration file. You should give access to your mailbox")
-        console.log("Cannot find configuration file. You should give access to your mailbox")
+        details.ui.tableWidget.clearContents()
+        details.ui.tableWidget.setRowCount(0)
+        details.ui.tableWidget.setColumnCount(0)
     else:
         # When mailbox has unread letters
-        window.trayIcon.setToolTip("You have " + str(mail_count) + " unread letters")
+        window.trayIcon.setToolTip("You have " + str(len(mails)) + " unread letters")
         # Draw text on icon
-        pixmap = QtGui.QPixmap(QtGui.QPixmap(":icons/mailbox_full.png"))
+        pixmap = QtGui.QPixmap(QtGui.QPixmap(":icons/mailbox_error.png" if has_errors else ":icons/mailbox_full.png"))
         painter = QtGui.QPainter(pixmap)
         painter.setPen(QtGui.QColor(255, 255, 255))
         painter.setFont(QtGui.QFont('Arial', 100, QtGui.QFont.Bold))
-        painter.drawText(QtCore.QRectF(pixmap.rect()), QtCore.Qt.AlignCenter, str(mail_count))
+        painter.drawText(QtCore.QRectF(pixmap.rect()), QtCore.Qt.AlignCenter, str(len(mails)))
         painter.end()
         # End drawing text on icon
         window.trayIcon.setIcon(QtGui.QIcon(pixmap))
         # Popup notification appears only if mail count changed since last check
-        if mail_count != window.lastCheckCount:
-            notify("You have " + str(mail_count) + " unread letters")
+        if len(mails) != window.lastCheckCount:
+            notify("You have " + str(len(mails)) + " unread letters")
 
         # Filling table
-        data = {"From": AllFroms,
-                "Subject": AllSubjs,
-                "Date": AllDates, }
-        details.ui.tableWidget.setRowCount(len(AllFroms))
-        details.ui.tableWidget.setColumnCount(3)
+        details.ui.tableWidget.setRowCount(len(mails))
+        details.ui.tableWidget.setColumnCount(4)
         # Enter data onto Table
-        try:
-            horHeaders = []
-            for n, key in enumerate(sorted(data.keys())):
-                # console.log(data.keys())
-                horHeaders.append(key)
-                for m, item in enumerate(data[key]):
-                    newitem = QtWidgets.QTableWidgetItem(item)
-                    details.ui.tableWidget.setItem(m, n, newitem)
-        except:
-            console.log("Unable to load some data")
-            pass
-
+        headers = []
+        for row, mail in enumerate(mails):
+            if not headers:
+                headers = sorted(mail.keys())
+            for col, key in enumerate(sorted(mail.keys())):
+                data = mail[key]
+                if type(data) == list:
+                    txt = ''
+                    for item in data:
+                        if type(item[0]) != str:
+                            if not item[1] or item[1] == 'unknown-8bit':
+                                item = (item[0], 'utf-8')
+                            txt += item[0].decode(item[1])
+                        else:
+                            txt += item[0]
+                    data = txt
+                newitem = QtWidgets.QTableWidgetItem(data)
+                details.ui.tableWidget.setItem(row, col, newitem)
         # Add Header
-        details.ui.tableWidget.setHorizontalHeaderLabels(horHeaders)
+        details.ui.tableWidget.setHorizontalHeaderLabels(headers)
 
         # Adjust size of Table
         details.ui.tableWidget.resizeColumnsToContents()
         details.ui.tableWidget.resizeRowsToContents()
-        console.log("Mail check completed. You have " + str(mail_count) + " unread letters")
+        console.log("Mail check completed. You have " + str(len(mails)) + " unread letters")
     # check was successfull, lastCheckCount is updating
-    window.lastCheckCount = mail_count
+    window.lastCheckCount = len(mails)
 
 
 def notify(message):
@@ -497,8 +456,8 @@ def notify(message):
         if settings.value("Notify"):
             subprocess.Popen(['notify-send', programTitle, message])
         return
-    except:
-        console.log(message)
+    except Exception as ex:
+        console.log('notify-send: ' + ex.strerror)
 
 
 if __name__ == '__main__':
