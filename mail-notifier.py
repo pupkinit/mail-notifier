@@ -25,8 +25,8 @@ settings = QSettings("settings.conf", QSettings.IniFormat)
 
 
 def GlobalSettingsExist():
-    if ((settings.contains("CheckInterval") and settings.value("CheckInterval") != "") and
-            (settings.contains("Notify") and settings.value("Notify") != "")):
+    if (settings.contains("CheckInterval") and settings.value("CheckInterval") != "" and
+            settings.contains("Notify") and settings.value("Notify") != ""):
         return True
     else:
         return False
@@ -34,20 +34,20 @@ def GlobalSettingsExist():
 
 def AccountExist():
     groups = settings.childGroups()
-    if (len(groups)) != 0:
+    if len(groups) != 0:
         settings.beginGroup(groups[0])
-        if ((settings.contains("MailServer") and settings.value("MailServer") != "") and
-                (settings.contains("Port") and settings.value("Port") != "") and
-                (settings.contains("Login") and settings.value("Login") != "") and
-                (settings.contains("Password") and settings.value("Password") != "") and
-                (settings.contains("SSL") and settings.value("SSL") != "")):
+        if (settings.contains("MailServer") and settings.value("MailServer") != "" and
+                settings.contains("Port") and settings.value("Port") != "" and
+                settings.contains("Login") and settings.value("Login") != "" and
+                settings.contains("Password") and settings.value("Password") != "" and
+                settings.contains("SSL") and settings.value("SSL") != ""):
             n = True
         else:
             n = False
         settings.endGroup()
     else:
         n = False
-    if (n):
+    if n:
         return True
     else:
         return False
@@ -72,7 +72,6 @@ class Window(QDialog):
         # setup settings
         self.ui = Ui_Settings()
         self.ui.setupUi(self)
-        self.setWindowIcon(QIcon(os.path.dirname(os.path.realpath(__file__)) + "/icons/mailbox_empty.png"))
         self.SettingsRestore()
 
         self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).clicked.connect(self.btnOK_clicked)
@@ -85,7 +84,7 @@ class Window(QDialog):
         self.ui.btnRemoveAccount.clicked.connect(self.btnRemoveAccount_clicked)
 
         # Check if account doesn't exist, it creates default one
-        if (AccountExist() == False):
+        if not AccountExist():
             self.ui.comboAccounts.addItem("Default")
             self.ui.comboAccounts.setCurrentText("Default")
 
@@ -129,7 +128,7 @@ class Window(QDialog):
         self.trayIcon.activated.connect(self.trayIconActivated)
 
     def SettingsRestore(self):
-        if (GlobalSettingsExist() and AccountExist()):
+        if GlobalSettingsExist() and AccountExist():
             groups = settings.childGroups()
             self.ui.comboAccounts.clear()  # Clear account items before fill them again
             for i in range(len(groups)):
@@ -142,7 +141,7 @@ class Window(QDialog):
                 self.ui.txtboxPassword.setText(settings.value("Password"))
                 self.ui.boolifSSL.setChecked(bool(settings.value("SSL")))
                 settings.endGroup()
-            if (self.ui.comboAccounts.count() == 0):
+            if self.ui.comboAccounts.count() == 0:
                 self.ui.comboAccounts.addItem("Default")
                 self.ui.comboAccounts.setCurrentText("Default")
             self.ui.checkFreq.setValue(int(settings.value("CheckInterval")))
@@ -167,8 +166,8 @@ class Window(QDialog):
     def btnOK_clicked(self):
         self.SettingsSave(self.ui.comboAccounts.currentText())
 
-        if (settings.value("MailServer") == "" or settings.value("Port") == "" or settings.value(
-                "Login") == "" or settings.value("Password") == ""):
+        if settings.value("MailServer") == "" or settings.value("Port") == "" or settings.value(
+                "Login") == "" or settings.value("Password") == "":
             QMessageBox.critical(self, "Warning", "You should fill all fields in IMAP settings!")
             self.show()
         mail_check()
@@ -195,7 +194,7 @@ class Window(QDialog):
 
     def btnAddAccount_clicked(self):
         GroupName = QInputDialog.getText(self, "Enter account name", "Enter account name", QLineEdit.Normal, "")
-        if (GroupName[0]):
+        if GroupName[0]:
             self.ui.comboAccounts.addItem(GroupName[0])
             self.ui.comboAccounts.setCurrentText(GroupName[0])
 
@@ -204,7 +203,7 @@ class Window(QDialog):
         OldGroupName = self.ui.comboAccounts.currentText()
         GroupName = QInputDialog.getText(self, "Enter account name", "Enter account name", QLineEdit.Normal,
                                          self.ui.comboAccounts.currentText())
-        if (GroupName[0]):
+        if GroupName[0]:
             self.SettingsSave(GroupName[0])
             self.ui.comboAccounts.setItemText(Index, GroupName[0])
             self.ui.comboAccounts.setCurrentText(GroupName[0])
@@ -217,13 +216,13 @@ class Window(QDialog):
     def btnRemoveAccount_clicked(self):
         reply = QMessageBox.warning(self, 'Warning!', "Delete this account permanently?",
                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if (reply == QMessageBox.Yes):
+        if reply == QMessageBox.Yes:
             Index = self.ui.comboAccounts.currentIndex()
             GroupName = self.ui.comboAccounts.currentText()
             self.ui.comboAccounts.removeItem(Index)
             self.SettingsRemove(GroupName)
         # Check if account doesn't exist, it creates default one
-        if (AccountExist() == False):
+        if not AccountExist():
             self.ui.comboAccounts.addItem("Default")
             self.ui.comboAccounts.setCurrentText("Default")
 
@@ -238,7 +237,7 @@ class Window(QDialog):
         settings.endGroup()
 
     def aboutShow(self):
-        if (about.isMinimized):
+        if about.isMinimized:
             about.hide()
         about.show()
         about.activateWindow()
@@ -257,7 +256,7 @@ class Window(QDialog):
             details.activateWindow()
 
     def start(self):
-        if (GlobalSettingsExist() and AccountExist()):
+        if GlobalSettingsExist() and AccountExist():
             CheckInterval = 1000 * 60 * int(settings.value("CheckInterval"))
         else:
             CheckInterval = 1000 * 60 * 5
@@ -297,7 +296,7 @@ class Console(QDialog):
         self.ui = Ui_Console()
         self.ui.setupUi(self)
         self.setWindowFlags(QtCore.Qt.Tool)
-        if (settings.contains("Console_width") and settings.contains("Console_height")):
+        if settings.contains("Console_width") and settings.contains("Console_height"):
             width = int(settings.value("Console_width"))
             height = int(settings.value("Console_height"))
             self.resize(width, height)
@@ -320,7 +319,7 @@ class Details(QDialog):
         self.ui.setupUi(self)
         self.setWindowFlags(QtCore.Qt.Window)
         self.ui.btnRefresh.clicked.connect(self.Refresh_clicked)
-        if (settings.contains("Details_width") and settings.contains("Details_height")):
+        if settings.contains("Details_width") and settings.contains("Details_height"):
             width = int(settings.value("Details_width"))
             height = int(settings.value("Details_height"))
             self.resize(width, height)
@@ -373,7 +372,7 @@ class Mail():
                 raw_mail = data[0][1]
                 mail = email.message_from_bytes(raw_mail)
                 h = email.header.decode_header(mail.get(header))
-                if (h[0][1] != "unknown-8bit"):
+                if h[0][1] != "unknown-8bit":
                     msg = h[0][0].decode(h[0][1]) if h[0][1] else h[0][0]
                 else:
                     msg = "Unknown charset"
@@ -394,7 +393,7 @@ def mail_check():
     details.ui.tableWidget.clearContents()
     details.ui.tableWidget.setRowCount(0)
     details.ui.tableWidget.setColumnCount(0)
-    if (GlobalSettingsExist() and AccountExist()):
+    if GlobalSettingsExist() and AccountExist():
         m = Mail()
         groups = settings.childGroups()
         for i in range(len(groups)):
@@ -460,7 +459,7 @@ def mail_check():
         # End drawing text on icon
         window.trayIcon.setIcon(QtGui.QIcon(pixmap))
         # Popup notification appears only if mail count changed since last check
-        if (mail_count != window.lastCheckCount):
+        if mail_count != window.lastCheckCount:
             notify("You have " + str(mail_count) + " unread letters")
 
         # Filling table
@@ -520,7 +519,7 @@ if __name__ == '__main__':
     about = About()
     details = Details()
     console = Console()
-    if (GlobalSettingsExist() and AccountExist()):
+    if GlobalSettingsExist() and AccountExist():
         window.hide()
     else:
         window.show()
