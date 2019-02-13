@@ -304,6 +304,8 @@ class Console(QDialog):
 
     def log(self, txt):
         self.ui.logList.addItem(datetime.strftime(datetime.now(), "%d.%m.%Y %H:%M:%S") + " - " + txt)
+        if self.ui.logList.count() > 1000:
+            self.ui.logList.takeItem(0)
 
 
 class Details(QDialog):
@@ -408,7 +410,7 @@ def mail_check():
         # Draw text on icon
         pixmap = QtGui.QPixmap(QtGui.QPixmap(":icons/mailbox_error.png" if has_errors else ":icons/mailbox_full.png"))
         painter = QtGui.QPainter(pixmap)
-        painter.setPen(QtGui.QColor(255, 255, 255))
+        painter.setPen(QtGui.QColor(255, 0, 0) if has_errors else QtGui.QColor(255, 255, 255))
         painter.setFont(QtGui.QFont('Arial', 100, QtGui.QFont.Bold))
         painter.drawText(QtCore.QRectF(pixmap.rect()), QtCore.Qt.AlignCenter, str(len(mails)))
         painter.end()
