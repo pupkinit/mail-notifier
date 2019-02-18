@@ -381,6 +381,7 @@ def mail_check():
                 m = Mail(mailserver, port, ssl, user, password)
                 mails.extend(m.checkmail(group))
             except imaplib.IMAP4.error as ex:
+                print(str(ex)) # todo debug type of ex
                 has_errors = True
                 console.log(group + ': ' + ex.args[0].decode())
             except (Exception, socket.timeout) as ex:
